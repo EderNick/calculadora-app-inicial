@@ -275,7 +275,7 @@ describe('Criterio 07: multiplicación y división', () => {
     test('[C07-3] controla la división entre cero', async () => {
         const calculator = await createCalculator();
 
-        await writeNumber(calculatorculator, '8');
+        await writeNumber(calculator, '8');
 
         await press(() => {
             calculator.result.current.dividirOperation();
