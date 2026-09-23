@@ -277,9 +277,13 @@ describe('Criterio 07: multiplicación y división', () => {
 
         await writeNumber(calculator, '8');
 
+        expect(calculator.result.current.numero).toBe('8');
+
         await press(() => {
             calculator.result.current.dividirOperation();
         });
+
+        expect(calculator.result.current.formula).toContain('÷');
 
         await writeNumber(calculator, '0');
 
