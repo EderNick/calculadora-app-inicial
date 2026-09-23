@@ -24,7 +24,7 @@ const writeNumber = async (calculator, value) => {
 };
 
 describe('Criterio 01: construcción de números enteros', () => {
-    test('[C01-1] inicia con el número cero', async () => {
+    test('[S01] inicia con el número cero', async () => {
         const calculator = await createCalculator();
 
         expect(calculator.result.current.numero).toBe('0');
@@ -287,7 +287,7 @@ describe('Criterio 07: multiplicación y división', () => {
             press(() => {
                 calculator.result.current.calcularResultado();
             })
-        ).resolves.not.toThrow();
+        ).resolves.toBeUndefined();
 
         expect(calculator.result.current.formula).not.toMatch(
             /Infinity|NaN/

@@ -15,7 +15,7 @@ const criteria = [
     {
         id: 'C01',
         description: 'Construcción de números enteros',
-        expectedTests: 3,
+        expectedTests: 2,
     },
     {
         id: 'C02',
