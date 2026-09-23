@@ -1,0 +1,123 @@
+name: Calificación automática
+
+on:
+    pull_request:
+        branches:
+            - main
+        types:
+            - opened
+            - synchronize
+            - reopened
+
+permissions:
+    contents: read
+
+concurrency:
+    group: calificacion-${{ github.event.pull_request.number }}
+    cancel-in-progress: true
+
+jobs:
+    calificar:
+        name: Evaluar práctica
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        steps:
+            - name: Descargar propuesta del estudiante
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Configurar Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: Verificar archivos modificados
+              env:
+                  BASE_SHA: ${{ github.event.pull_request.base.sha }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+              run: |
+                  git diff --name-only "$BASE_SHA" "$HEAD_SHA" > archivos-modificados.txt
+
+                  echo "Archivos modificados:"
+                  cat archivos-modificados.txt
+
+                  ARCHIVOS_NO_PERMITIDOS=$(grep -v '^hooks/useCalculator.tsx$' archivos-modificados.txt || true)
+
+                  if [ -z "$ARCHIVOS_NO_PERMITIDOS" ]; then
+                    echo "PROTECTED_OK=1" >> "$GITHUB_ENV"
+                  else
+                    echo "PROTECTED_OK=0" >> "$GITHUB_ENV"
+                    echo "Se modificaron archivos no permitidos:"
+                    echo "$ARCHIVOS_NO_PERMITIDOS"
+                  fi
+
+            - name: Restaurar archivos de evaluación del docente
+              env:
+                  BASE_SHA: ${{ github.event.pull_request.base.sha }}
+              run: |
+                  git checkout "$BASE_SHA" -- grader
+                  git checkout "$BASE_SHA" -- jest.grader.config.js
+                  git checkout "$BASE_SHA" -- package.json
+
+                  if git cat-file -e "$BASE_SHA:package-lock.json" 2>/dev/null; then
+                    git checkout "$BASE_SHA" -- package-lock.json
+                  fi
+
+            - name: Instalar dependencias
+              run: |
+                  if [ -f package-lock.json ]; then
+                    npm ci
+                  else
+                    npm install
+                  fi
+
+            - name: Verificar TypeScript
+              run: |
+                  set +e
+                  npm run typecheck
+                  RESULTADO=$?
+
+                  if [ "$RESULTADO" -eq 0 ]; then
+                    echo "TYPECHECK_OK=1" >> "$GITHUB_ENV"
+                  else
+                    echo "TYPECHECK_OK=0" >> "$GITHUB_ENV"
+                  fi
+
+                  exit 0
+
+            - name: Ejecutar pruebas funcionales
+              run: |
+                  set +e
+                  npm run test:grade -- --json --outputFile=resultado-jest.json
+                  echo "JEST_EXIT=$?" >> "$GITHUB_ENV"
+                  exit 0
+
+            - name: Generar reporte y puntaje
+              id: reporte
+              env:
+                  BRANCH_NAME: ${{ github.head_ref }}
+                  GITHUB_USER: ${{ github.event.pull_request.user.login }}
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+                  PR_BODY: ${{ github.event.pull_request.body }}
+              run: node grader/generar-reporte.mjs
+
+            - name: Guardar evidencia de evaluación
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: resultado-pr-${{ github.event.pull_request.number }}
+                  path: |
+                      resultado-calificacion.md
+                      resultado-calificacion.json
+                      resultado-jest.json
+                      archivos-modificados.txt
+                  retention-days: 30
+
+            - name: Marcar revisión incompleta
+              if: steps.reporte.outputs.total != '20'
+              run: |
+                  echo "La entrega aún no alcanza el puntaje máximo."
+                  exit 1
