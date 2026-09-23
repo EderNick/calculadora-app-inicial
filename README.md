@@ -307,13 +307,11 @@ PC Calculadora - FIGUEROA PISCOYA EDER NICANOR
 
 Complete todos los apartados de la plantilla:
 
-- Apellidos y nombres.
-- Código universitario.
-- Usuario de GitHub.
-- Sección.
-- Descripción breve de su solución.
+- Apellidos y nombres:
+- Código universitario:
+- Usuario de GitHub:
+- Curso-Ciclo:
 - Lista de funcionalidades verificadas.
-- Captura de la calculadora funcionando.
 - Declaración de autoría.
 
 Después, presione:
