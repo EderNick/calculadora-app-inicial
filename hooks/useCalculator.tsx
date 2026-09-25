@@ -114,6 +114,7 @@ export const useCalculator = () => {
         return num1 * num2;
 
       case Operator.divide:
+        if (num2 === 0) return "Error";
         return num1 / num2;
 
       default:
