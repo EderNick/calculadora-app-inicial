@@ -22,6 +22,11 @@ export const useCalculator = () => {
   const lastOperadorUsado = useRef<Operator | null>(null);
   const lastSegundoOperando = useRef('0');
 
+  const actualizarNumero = (valor: string) => {
+    setNumero(valor);
+    setFormula(valor);
+  };
+
   const limpiar = () => {
     setNumero('0');
     setPrevNumero('0');
@@ -35,15 +40,15 @@ export const useCalculator = () => {
 
   const invertirSigno = () => {
     if (numero === '0') return;
-    setNumero(numero.startsWith('-') ? numero.slice(1) : '-' + numero);
+    actualizarNumero(numero.startsWith('-') ? numero.slice(1) : '-' + numero);
   };
 
   const borrarUltimo = () => {
     const esNegativoDeUnDigito = numero.length === 2 && numero.startsWith('-');
     if (numero.length === 1 || esNegativoDeUnDigito) {
-      return setNumero('0');
+      return actualizarNumero('0');
     }
-    setNumero(numero.slice(0, -1));
+    actualizarNumero(numero.slice(0, -1));
   };
 
   const setLastnumero = () => {
@@ -98,7 +103,7 @@ export const useCalculator = () => {
 
     if (lastOperation.current) {
       const resultado = calcularSubResultado();
-      if (resultado === null) return; 
+      if (resultado === null) return;
       base = resultado;
     } else {
       setLastnumero();
@@ -172,19 +177,19 @@ export const useCalculator = () => {
 
     if (justCalculated.current) {
       justCalculated.current = false;
-      return setNumero(numeroString === '.' ? '0.' : numeroString);
+      return actualizarNumero(numeroString === '.' ? '0.' : numeroString);
     }
 
     if (numero.includes('.') && numeroString === '.') return;
 
     if (numero === '0' && numeroString !== '.') {
-      return setNumero(numeroString);
+      return actualizarNumero(numeroString);
     }
     if (numero === '-0' && numeroString !== '.') {
-      return setNumero('-' + numeroString);
+      return actualizarNumero('-' + numeroString);
     }
 
-    setNumero(numero + numeroString);
+    actualizarNumero(numero + numeroString);
   };
 
   return {
