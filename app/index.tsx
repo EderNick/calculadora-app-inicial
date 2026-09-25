@@ -8,6 +8,7 @@ import { View } from 'react-native';
 const CalculatorApp = () => {
     const {
         formula,
+        numero,
         prevNumero,
         construirNumero,
         limpiar,
@@ -27,7 +28,7 @@ const CalculatorApp = () => {
             <View style={{ paddingHorizontal: 30, marginBottom: 20 }}>
                 <ThemeText variant="h1">{formula}</ThemeText>
 
-                {formula === prevNumero ? (
+                {formula === prevNumero || numero === '0' ? (
                     <ThemeText variant="h2"> </ThemeText>
                 ) : (
                     <ThemeText variant="h2">{prevNumero}</ThemeText>
