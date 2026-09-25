@@ -94,9 +94,13 @@ export const useCalculator = () => {
     const [firstValue, operation, secondValue] = formula.split(' ');
 
     const num1 = Number(firstValue);
-    const num2 = Number(secondValue); // NaN
+    const num2 = Number(secondValue);
 
     if (isNaN(num2)) return num1;
+
+    if (operation === Operator.divide && num2 === 0) {
+      return 0;
+    }
 
     switch (operation) {
       case Operator.add:
@@ -107,7 +111,6 @@ export const useCalculator = () => {
         return num1 * num2;
       case Operator.divide:
         return num1 / num2;
-      
 
       default:
         throw new Error(`Operation ${operation} not implemented`);
@@ -116,6 +119,15 @@ export const useCalculator = () => {
 
   const calcularResultado = () => {
     const result = calcularSubResultado();
+
+    if (!Number.isFinite(result) || Number.isNaN(result)) {
+      setFormula('0');
+      setNumero('0');
+      setPrevNumero('0');
+      lastOperation.current = null;
+      return;
+    }
+
     setFormula(`${result}`);
 
     lastOperation.current = null;
